@@ -43,6 +43,7 @@ public final class SlimefunExtended {
             return false;
         }
 
+        /* Disable HybirdServer checker.
         if (EnvironmentChecker.checkHybridServer()) {
             sf.getLogger().log(Level.WARNING, "#######################################################");
             sf.getLogger().log(Level.WARNING, "");
@@ -55,6 +56,7 @@ public final class SlimefunExtended {
             sf.getLogger().log(Level.WARNING, "#######################################################");
             return false;
         }
+        */
 
         if (Slimefun.getConfigManager().isBypassEnvironmentCheck()) {
             sf.getLogger().log(Level.WARNING, "#######################################################");
