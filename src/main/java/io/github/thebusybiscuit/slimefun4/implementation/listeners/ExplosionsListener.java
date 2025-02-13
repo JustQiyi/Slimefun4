@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.bukkit.ExplosionResult;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
@@ -31,10 +32,8 @@ import org.bukkit.inventory.ItemStack;
  * calls the explosive part of the {@link BlockBreakHandler}.
  *
  * @author TheBusyBiscuit
- *
  * @see BlockBreakHandler
  * @see WitherProof
- *
  */
 public class ExplosionsListener implements Listener {
 
@@ -49,7 +48,8 @@ public class ExplosionsListener implements Listener {
          * so we just ignore it.
          */
         if (Slimefun.getMinecraftVersion().isAtLeast(MinecraftVersion.MINECRAFT_1_21)
-                && e.getEntityType() == EntityType.WIND_CHARGE) {
+                && (e.getEntityType() == EntityType.WIND_CHARGE
+                        || e.getEntityType() == EntityType.BREEZE_WIND_CHARGE)) {
             return;
         }
 
@@ -58,6 +58,11 @@ public class ExplosionsListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent e) {
+        if (Slimefun.getMinecraftVersion().isAtLeast(MinecraftVersion.MINECRAFT_1_21)
+                && e.getExplosionResult() == ExplosionResult.TRIGGER_BLOCK) {
+            return;
+        }
+
         removeResistantBlocks(e.blockList().iterator());
     }
 
