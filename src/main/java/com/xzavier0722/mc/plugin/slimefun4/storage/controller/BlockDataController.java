@@ -248,9 +248,9 @@ public class BlockDataController extends ADataController {
         var uuid = UUID.randomUUID();
         var uniData = new SlimefunUniversalBlockData(uuid, sfId, l);
 
-        uniData.initLastPresent();
-
         uniData.setIsDataLoaded(true);
+
+        uniData.initLastPresent();
 
         loadedUniversalData.put(uuid, uniData);
 
@@ -580,53 +580,58 @@ public class BlockDataController extends ADataController {
             menu.lock();
         }
 
-        var chunk = blockData.getLocation().getChunk();
-        var chunkData = getChunkDataCache(chunk, false);
-        if (chunkData != null) {
-            chunkData.removeBlockDataCacheInternal(blockData.getKey());
-        }
-
-        var newBlockData = new SlimefunBlockData(target, blockData);
-        var key = new RecordKey(DataScope.BLOCK_RECORD);
-        if (LocationUtils.isSameChunk(blockData.getLocation().getChunk(), target.getChunk())) {
-            if (chunkData == null) {
-                chunkData = getChunkDataCache(chunk, true);
+        try {
+            var chunk = blockData.getLocation().getChunk();
+            var chunkData = getChunkDataCache(chunk, false);
+            if (chunkData != null) {
+                chunkData.removeBlockDataCacheInternal(blockData.getKey());
             }
-            key.addField(FieldKey.CHUNK);
-        } else {
-            chunkData = getChunkDataCache(target.getChunk(), true);
-        }
 
-        chunkData.addBlockCacheInternal(newBlockData, true);
+            var newBlockData = new SlimefunBlockData(target, blockData);
+            var key = new RecordKey(DataScope.BLOCK_RECORD);
+            if (LocationUtils.isSameChunk(blockData.getLocation().getChunk(), target.getChunk())) {
+                if (chunkData == null) {
+                    chunkData = getChunkDataCache(chunk, true);
+                }
+                key.addField(FieldKey.CHUNK);
+            } else {
+                chunkData = getChunkDataCache(target.getChunk(), true);
+            }
 
-        if (menu != null) {
-            newBlockData.setBlockMenu(new BlockMenu(menu.getPreset(), target, menu.getInventory()));
-            menu.unlock();
-        }
+            chunkData.addBlockCacheInternal(newBlockData, true);
 
-        key.addField(FieldKey.LOCATION);
-        key.addCondition(FieldKey.LOCATION, blockData.getKey());
+            if (menu != null) {
+                newBlockData.setBlockMenu(new BlockMenu(menu.getPreset(), target, menu.getInventory()));
+            }
 
-        var data = new RecordSet();
-        data.put(FieldKey.LOCATION, newBlockData.getKey());
-        data.put(FieldKey.CHUNK, chunkData.getKey());
-        data.put(FieldKey.SLIMEFUN_ID, blockData.getSfId());
-        var scopeKey = new LocationKey(DataScope.NONE, blockData.getLocation());
-        synchronized (delayedWriteTasks) {
-            var it = delayedWriteTasks.entrySet().iterator();
-            while (it.hasNext()) {
-                var next = it.next();
-                if (scopeKey.equals(next.getKey().getParent())) {
-                    next.getValue().runUnsafely();
-                    it.remove();
+            key.addField(FieldKey.LOCATION);
+            key.addCondition(FieldKey.LOCATION, blockData.getKey());
+
+            var data = new RecordSet();
+            data.put(FieldKey.LOCATION, newBlockData.getKey());
+            data.put(FieldKey.CHUNK, chunkData.getKey());
+            data.put(FieldKey.SLIMEFUN_ID, blockData.getSfId());
+            var scopeKey = new LocationKey(DataScope.NONE, blockData.getLocation());
+            synchronized (delayedWriteTasks) {
+                var it = delayedWriteTasks.entrySet().iterator();
+                while (it.hasNext()) {
+                    var next = it.next();
+                    if (scopeKey.equals(next.getKey().getParent())) {
+                        next.getValue().runUnsafely();
+                        it.remove();
+                    }
                 }
             }
-        }
 
-        scheduleWriteTask(scopeKey, key, data, true);
+            scheduleWriteTask(scopeKey, key, data, true);
 
-        if (hasTicker) {
-            Slimefun.getTickerTask().enableTicker(target);
+            if (hasTicker) {
+                Slimefun.getTickerTask().enableTicker(target);
+            }
+        } finally {
+            if (menu != null) {
+                menu.unlock();
+            }
         }
     }
 

@@ -14,6 +14,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,7 +29,7 @@ import org.bukkit.block.Block;
  * {@link com.xzavier0722.mc.plugin.slimefun4.storage.controller.BlockDataController#getBlockData}
  */
 public class StorageCacheUtils {
-    private static final Set<ADataContainer> loadingData = new HashSet<>();
+    private static final Set<ADataContainer> loadingData = new CopyOnWriteArraySet<>();
 
     @ParametersAreNonnullByDefault
     public static boolean hasSlimefunBlock(Location l) {
